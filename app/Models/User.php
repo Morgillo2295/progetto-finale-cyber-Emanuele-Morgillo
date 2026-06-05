@@ -12,7 +12,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * Solo i campi del form profilo. I ruoli NON sono fillable:
+     * vanno assegnati esplicitamente dall'admin (AdminController).
      *
      * @var array<int, string>
      */
@@ -20,6 +21,16 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    protected $guarded = [
+        'id',
+        'is_admin',
+        'is_revisor',
+        'is_writer',
     ];
 
     /**

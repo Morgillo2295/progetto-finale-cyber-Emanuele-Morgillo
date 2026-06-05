@@ -4,6 +4,17 @@
             <div class="col-12 col-md-6">
                 <h1 class="mb-4">Profile</h1>
 
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="h6 text-muted mb-2">Current roles (read only)</h2>
+                        <p class="mb-0">
+                            Admin: {{ $user->is_admin ? 'yes' : 'no' }} |
+                            Revisor: {{ $user->is_revisor ? 'yes' : 'no' }} |
+                            Writer: {{ $user->is_writer ? 'yes' : 'no' }}
+                        </p>
+                    </div>
+                </div>
+
                 @if (session('message'))
                     <div class="alert alert-success">{{ session('message') }}</div>
                 @endif

@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
@@ -14,25 +13,24 @@ class ProfileController extends Controller
         return view('profile.edit', ['user' => Auth::user()]);
     }
 
-    public function update(Request $request)
+    public function update(UpdateProfileRequest $request)
     {
         $user = Auth::user();
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-        ]);
-
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-
-        if (! empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
+        if ($request->attemptedRoleEscalation()) {
+            Log::warning('Mass assignment attempt blocked', [
+                'action' => 'mass_assignment_blocked',
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'submitted_fields' => $request->submittedRoleFields(),
+                'ip' => $request->ip(),
+            ]);
         }
 
-        $user->save();
+        $user->update($request->profileAttributes());
 
-        return redirect()->route('profile.edit')->with('message', 'Profilo aggiornato con successo');
+        return redirect()
+            ->route('profile.edit')
+            ->with('message', 'Profilo aggiornato con successo');
     }
 }
