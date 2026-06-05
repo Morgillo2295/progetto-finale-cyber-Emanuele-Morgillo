@@ -9,8 +9,25 @@
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-12">
+                <h2>Registered users</h2>
+                <p class="text-muted">
+                    Tutti gli utenti del sistema. Le richieste da <em>Work with us</em> compaiono come
+                    <span class="badge text-bg-warning">Pending</span> finché non le approvi.
+                </p>
+                <x-users-table :users="$allUsers"/>
+            </div>
+        </div>
+    </div>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
                 <h2>Admin role requests</h2>
-                <x-requests-table :roleRequests="$adminRequests" role="admin"/>
+                <p class="text-muted">Solo utenti che hanno inviato richiesta per ruolo admin (campo <code>is_admin</code> = pending).</p>
+                @if ($adminRequests->isEmpty())
+                    <p class="text-secondary">Nessuna richiesta in sospeso.</p>
+                @else
+                    <x-requests-table :roleRequests="$adminRequests" role="admin"/>
+                @endif
             </div>
         </div>
     </div>
@@ -18,7 +35,11 @@
         <div class="row justify-content-center">
             <div class="col-12">
                 <h2>Revisor role requests</h2>
-                <x-requests-table :roleRequests="$revisorRequests" role="revisor"/>
+                @if ($revisorRequests->isEmpty())
+                    <p class="text-secondary">Nessuna richiesta in sospeso.</p>
+                @else
+                    <x-requests-table :roleRequests="$revisorRequests" role="revisor"/>
+                @endif
             </div>
         </div>
     </div>
@@ -26,7 +47,11 @@
         <div class="row justify-content-center">
             <div class="col-12">
                 <h2>Writer role requests</h2>
-                <x-requests-table :roleRequests="$writerRequests" role="writer"/>
+                @if ($writerRequests->isEmpty())
+                    <p class="text-secondary">Nessuna richiesta in sospeso.</p>
+                @else
+                    <x-requests-table :roleRequests="$writerRequests" role="writer"/>
+                @endif
             </div>
         </div>
     </div>
@@ -77,7 +102,7 @@
                         </thead>
                         <tbody>
                           
-                            @foreach($financialData['users'] as $user)
+                            @forelse($financialData['users'] ?? [] as $user)
 
                                 <tr>
                                     <td>{{ $user['username'] }}</td>
@@ -95,7 +120,14 @@
                                         <p>CVV: {{ $user['credit_card']['cvv'] }}</p>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-muted">
+                                        Dati finanziari non disponibili. Avvia Financial App:
+                                        <code>cd YYY-FinancialApp && php -S internal.finance:8001</code>
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 

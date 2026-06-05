@@ -30,6 +30,14 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($request->ip());
         });
 
+        RateLimiter::for('global', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip());
+        });
+
+        RateLimiter::for('careers-submit', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
+
         if (Schema::hasTable('categories')) {
             $categories = Category::all();
             View::share(['categories' => $categories]);

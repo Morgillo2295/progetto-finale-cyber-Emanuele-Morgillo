@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        env('APP_URL', 'http://cyber.blog:8000'),
+        'http://cyber.blog:8000',
+        'http://internal.admin:8000',
+    ],
 
     'allowed_origins_patterns' => [],
 

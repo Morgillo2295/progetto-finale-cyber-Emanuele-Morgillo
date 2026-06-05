@@ -6,11 +6,14 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\WriterController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\RevisorController;
+use App\Http\Controllers\ProfileController;
 
 // Public routes
 Route::get('/', [PublicController::class, 'homepage'])->name('homepage');
 Route::get('/careers', [PublicController::class, 'careers'])->name('careers');
-Route::post('/careers/submit', [PublicController::class, 'careersSubmit'])->name('careers.submit');
+Route::post('/careers/submit', [PublicController::class, 'careersSubmit'])
+    ->middleware('throttle:careers-submit')
+    ->name('careers.submit');
 
 Route::get('/articles/index', [ArticleController::class, 'index'])->name('articles.index');
 Route::get('/articles/show/{article:slug}', [ArticleController::class, 'show'])->name('articles.show');
@@ -19,6 +22,11 @@ Route::get('/articles/user/{user}', [ArticleController::class, 'byUser'])->name(
 Route::get('/articles/search', [ArticleController::class, 'articleSearch'])
     ->middleware('throttle:article-search')
     ->name('articles.search');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 // Writer routes
 Route::middleware('writer')->group(function(){

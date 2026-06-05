@@ -21,7 +21,11 @@
     </div>
     <div class="card-footer d-flex justify-content-between align-items-center">
         <p>Created at {{$article->created_at->format('d/m/Y')}} <br>
-            By <a class="text-muted" href="{{ route('articles.byUser', $article->user) }}">{{$article->user->name}}</a>
+            @if ($article->user)
+                By <a class="text-muted" href="{{ route('articles.byUser', $article->user) }}">{{ $article->user->name }}</a>
+            @else
+                By <span class="text-muted">Unknown author</span>
+            @endif
         </p>
         <a href="{{route('articles.show', $article)}}" class="btn btn-outline-secondary">Read more</a>
     </div>

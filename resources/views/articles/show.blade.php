@@ -21,11 +21,17 @@
                         <p class="fs-5">No category</p>
                     @endif
                     <div class="text-muted my-3">
-                        <p>Created at {{$article->created_at->format('d/m/Y')}} by <a class="text-muted" href="{{ route('articles.byUser', $article->user) }}">{{$article->user->name}}</a></p>
+                        <p>Created at {{$article->created_at->format('d/m/Y')}}
+                            @if ($article->user)
+                                by <a class="text-muted" href="{{ route('articles.byUser', $article->user) }}">{{ $article->user->name }}</a>
+                            @else
+                                by <span class="text-muted">Unknown author</span>
+                            @endif
+                        </p>
                     </div>
                 </div>
                 <hr>
-                <p>{!!$article->body!!}</p>
+                <p>{!! app(\App\Services\HtmlSanitizer::class)->sanitize($article->body) !!}</p>
                 @if (Auth::user() && Auth::user()->is_revisor && !$article->is_accepted)
                     <div class="container my-5">
                         <div class="row">

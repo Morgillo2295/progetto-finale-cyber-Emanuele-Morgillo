@@ -6,6 +6,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\Article;
 use App\Models\Category;
+use App\Services\HtmlSanitizer;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,12 +17,17 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 
 class ArticleController extends Controller implements HasMiddleware
 {
+    public function __construct(protected HtmlSanitizer $htmlSanitizer)
+    {
+    }
+
     public static function middleware()
     {
         return [
             new Middleware('auth', except: ['index', 'show', 'byCategory', 'byUser', 'articleSearch']),
         ];
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -56,25 +62,34 @@ class ArticleController extends Controller implements HasMiddleware
         $article = Article::create([
             'title' => $request->title,
             'subtitle' => $request->subtitle,
-            'body' => $request->body,
+            'body' => $this->htmlSanitizer->sanitize($request->body),
             'image' => $request->file('image')->store('public/images'),
             'category_id' => $request->category,
             'user_id' => Auth::user()->id,
             'slug' => Str::slug($request->title),
         ]);
-        
+
         $tags = explode(',', $request->tags);
 
-        foreach($tags as $i => $tag){
+        foreach ($tags as $i => $tag) {
             $tags[$i] = trim($tag);
         }
 
-        foreach($tags as $tag){
+        foreach ($tags as $tag) {
             $newTag = Tag::updateOrCreate([
                 'name' => strtolower($tag)
             ]);
             $article->tags()->attach($newTag);
         }
+
+        Log::info('Article created', [
+            'action' => 'article_created',
+            'user_id' => Auth::id(),
+            'article_id' => $article->id,
+            'title' => $article->title,
+            'category_id' => $article->category_id,
+            'ip' => $request->ip(),
+        ]);
 
         return redirect(route('homepage'))->with('message', 'Articolo creato con successo');
     }
@@ -92,9 +107,10 @@ class ArticleController extends Controller implements HasMiddleware
      */
     public function edit(Article $article)
     {
-        if(Auth::user()->id != $article->user_id){
+        if (Auth::user()->id != $article->user_id) {
             return redirect()->route('homepage')->with('alert', 'Accesso non consentito');
         }
+
         return view('articles.edit', compact('article'));
     }
 
@@ -115,33 +131,43 @@ class ArticleController extends Controller implements HasMiddleware
         $article->update([
             'title' => $request->title,
             'subtitle' => $request->subtitle,
-            'body' => $request->body,
+            'body' => $this->htmlSanitizer->sanitize($request->body),
             'category_id' => $request->category,
             'slug' => Str::slug($request->title),
         ]);
 
-        if($request->image){
+        if ($request->image) {
             Storage::delete($article->image);
             $article->update([
                 'image' => $request->file('image')->store('public/images')
             ]);
         }
-        
+
         $tags = explode(',', $request->tags);
 
-        foreach($tags as $i => $tag){
+        foreach ($tags as $i => $tag) {
             $tags[$i] = trim($tag);
         }
 
         $newTags = [];
 
-        foreach($tags as $tag){
+        foreach ($tags as $tag) {
             $newTag = Tag::updateOrCreate([
                 'name' => strtolower($tag)
             ]);
             $newTags[] = $newTag->id;
         }
+
         $article->tags()->sync($newTags);
+
+        Log::info('Article updated', [
+            'action' => 'article_updated',
+            'user_id' => Auth::id(),
+            'article_id' => $article->id,
+            'title' => $article->title,
+            'category_id' => $article->category_id,
+            'ip' => $request->ip(),
+        ]);
 
         return redirect(route('writer.dashboard'))->with('message', 'Articolo modificato con successo');
     }
@@ -151,25 +177,38 @@ class ArticleController extends Controller implements HasMiddleware
      */
     public function destroy(Article $article)
     {
+        Log::info('Article deleted', [
+            'action' => 'article_deleted',
+            'user_id' => Auth::id(),
+            'article_id' => $article->id,
+            'title' => $article->title,
+            'category_id' => $article->category_id,
+            'ip' => request()->ip(),
+        ]);
+
         foreach ($article->tags as $tag) {
             $article->tags()->detach($tag);
         }
+
         $article->delete();
-        
+
         return redirect()->back()->with('message', 'Articolo cancellato con successo');
     }
 
-    public function byCategory(Category $category){
+    public function byCategory(Category $category)
+    {
         $articles = $category->articles()->where('is_accepted', true)->orderBy('created_at', 'desc')->get();
         return view('articles.by-category', compact('category', 'articles'));
     }
-    
-    public function byUser(User $user){
+
+    public function byUser(User $user)
+    {
         $articles = $user->articles()->where('is_accepted', true)->orderBy('created_at', 'desc')->get();
         return view('articles.by-user', compact('user', 'articles'));
     }
 
-    public function articleSearch(Request $request){
+    public function articleSearch(Request $request)
+    {
         $query = $request->input('query');
         $articles = Article::search($query)->where('is_accepted', true)->orderBy('created_at', 'desc')->get();
         return view('articles.search-index', compact('articles', 'query'));
