@@ -1,4 +1,4 @@
-# Progetto Finale Cyber Blog
+# Progetto Finale Cyber Blog by Emanuele Morgillo Hack
 
 Documentazione evidenze: [EVIDENZE_PROGETTO/evidence/](EVIDENZE_PROGETTO/evidence/)
 
@@ -40,10 +40,6 @@ Terminale 3: `cd YYY-FinancialApp && php -S internal.finance:8001`
 
 - Blog: http://cyber.blog:8000  
 - Admin: http://internal.admin:8000  
-
-## Note per le evidenze
-
-Per ogni challenge servono screenshot **prima** (attacco riuscito) e **dopo** (mitigazione). Le cartelle in `EVIDENZE_PROGETTO/evidence/` contengono i readme con i passi di verifica; aggiungi le tue immagini dove indicato.
 
 ## Riferimenti challenge (dettaglio)
 
