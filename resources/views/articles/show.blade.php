@@ -31,7 +31,7 @@
                     </div>
                 </div>
                 <hr>
-                <p>{!! app(\App\Services\HtmlSanitizer::class)->sanitize($article->body) !!}</p>
+                <div class="article-body">{!! $article->safe_body !!}</div>
                 @if (Auth::user() && Auth::user()->is_revisor && !$article->is_accepted)
                     <div class="container my-5">
                         <div class="row">

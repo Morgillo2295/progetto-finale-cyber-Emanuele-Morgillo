@@ -1,22 +1,25 @@
-# Challenge 06 - Mass assignment
+# Challenge 6 - Uso non corretto della proprietà fillable nei modelli
 
-## Attacco (prima della mitigazione)
+## Scenario
 
-Con `is_admin` in `$fillable` e form profilo, aggiungere campo nascosto `is_admin=1` via DevTools e inviare: privilege escalation.
+Un utente malevolo può alterare il form profilo e tentare di inviare campi non previsti, come quelli legati ai ruoli.
 
-## Mitigazione implementata
+## Attacco
 
-- `User::$fillable` limitato a `name`, `email`, `password`.
-- `ProfileController` aggiorna solo campi validati esplicitamente.
-- Rotte `/profile` (GET/PUT) e link in navbar.
+L’attacco consiste nel modificare la richiesta e aggiungere campi sensibili per tentare una privilege escalation tramite mass assignment.
 
-## Verifica post-mitigazione
+## Mitigazione
 
-1. Aprire `/profile`, aggiungere input `is_admin=1` nel form.
-2. Salvare: l'utente non diventa admin.
-3. Controllare DB o pannello admin: ruoli invariati.
+La mitigazione è stata fatta definendo correttamente la proprietà `fillable` del modello, includendo solo i campi realmente gestiti dal form.
 
-## Screenshot da aggiungere
+## Verifica finale
 
-- DevTools con campo extra inviato.
-- Profilo/ruoli utente invariati dopo submit.
+Dopo la correzione, i campi non autorizzati non vengono più assegnati al modello.
+
+## Screenshot
+
+- Pagina profilo prima dell’attacco.
+- Request modificata con campo non autorizzato.
+- Effetto della vulnerabilità.
+- Codice con `fillable` corretto.
+- Verifica finale dopo il fix.

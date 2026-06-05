@@ -1,21 +1,17 @@
-# Challenge 05 - Stored XSS
+# Challenge 5 - Validazione contenuto articolo non presente o non corretta
 
-## Attacco (prima della mitigazione)
+## Scenario
 
-Con Burp Suite, inviare nel body dell'articolo payload come `<script>alert('hacked')</script>` o `<img src="x" onerror="alert('hacked')">` e visualizzare l'articolo: lo script viene eseguito con `{!! $article->body !!}`.
+Durante la creazione di un articolo, il contenuto del body può essere manomesso e usato per inserire script malevoli.
 
-## Mitigazione implementata
+## Attacco
 
-- `app/Services/HtmlSanitizer.php`: rimuove tag pericolosi e attributi event handler.
-- `ArticleController@store` e `@update`: sanitizzazione in salvataggio.
-- `articles/show.blade.php`: sanitizzazione anche in visualizzazione (defense in depth).
+L’attacco consiste nell’inserire un payload JavaScript nel body dell’articolo tramite modifica della richiesta.
 
-## Verifica post-mitigazione
+## Mitigazione
 
-1. Ripetere l'attacco con Burp: il payload viene neutralizzato.
-2. Aprire l'articolo: nessun `alert`, HTML sicuro mostrato come testo/tag ammessi.
+La mitigazione è stata fatta filtrando e sanitizzando il contenuto prima del salvataggio e gestendo l’output in modo sicuro.
 
-## Screenshot da aggiungere
+## Verifica finale
 
-- Burp con payload inviato.
-- Pagina articolo senza esecuzione script.
+Dopo la correzione, il payload non viene più eseguito quando l’articolo viene visualizzato, dando un messaggio di errore.

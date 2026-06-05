@@ -53,7 +53,11 @@ class ArticleController extends Controller implements HasMiddleware
         $request->validate([
             'title' => 'required|unique:articles|min:5',
             'subtitle' => 'required|min:5',
-            'body' => 'required|min:10',
+            'body' => ['required', 'min:10', function (string $attribute, mixed $value, \Closure $fail) {
+                if ($this->htmlSanitizer->containsDangerousMarkup((string) $value)) {
+                    $fail('Il contenuto contiene markup non consentito (script, eventi JS, iframe, img, ecc.).');
+                }
+            }],
             'image' => 'required|image',
             'category' => 'required',
             'tags' => 'required'
@@ -122,7 +126,11 @@ class ArticleController extends Controller implements HasMiddleware
         $request->validate([
             'title' => 'required|min:5|unique:articles,title,' . $article->id,
             'subtitle' => 'required|min:5',
-            'body' => 'required|min:10',
+            'body' => ['required', 'min:10', function (string $attribute, mixed $value, \Closure $fail) {
+                if ($this->htmlSanitizer->containsDangerousMarkup((string) $value)) {
+                    $fail('Il contenuto contiene markup non consentito (script, eventi JS, iframe, img, ecc.).');
+                }
+            }],
             'image' => 'image',
             'category' => 'required',
             'tags' => 'required'

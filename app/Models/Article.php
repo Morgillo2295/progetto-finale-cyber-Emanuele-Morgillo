@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\HtmlSanitizer;
 use Illuminate\Support\Str;
 use Laravel\Scout\Searchable;
 use Illuminate\Database\Eloquent\Model;
@@ -46,5 +47,15 @@ class Article extends Model
         $totalWords = Str::wordCount($this->body);
         $minutesToRead = round($totalWords / 200);
         return intval($minutesToRead);
+    }
+
+    public function setBodyAttribute(?string $value): void
+    {
+        $this->attributes['body'] = app(HtmlSanitizer::class)->sanitize($value);
+    }
+
+    public function getSafeBodyAttribute(): string
+    {
+        return app(HtmlSanitizer::class)->sanitize($this->body);
     }
 }
