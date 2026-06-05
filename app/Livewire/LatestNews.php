@@ -4,12 +4,14 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Services\HttpService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class LatestNews extends Component
 {
-    public string $selectedCountry = '';
+    use AuthorizesRequests;
 
-    public $news;
+    public string $selectedCountry = '';
+    public array $news = [];
 
     protected HttpService $httpService;
 
@@ -18,26 +20,38 @@ class LatestNews extends Component
         $this->httpService = $httpService;
     }
 
+    protected function rules(): array
+    {
+        return [
+            'selectedCountry' => 'required|in:it,gb,us',
+        ];
+    }
+
     public function fetchNews(): void
     {
+        $this->authorize('isWriter');
+
+        $validated = $this->validate();
         $endpoints = $this->newsEndpoints();
+        $country = $validated['selectedCountry'];
 
-        if (! array_key_exists($this->selectedCountry, $endpoints)) {
+        if (! array_key_exists($country, $endpoints)) {
             $this->news = ['error' => 'Invalid country selection'];
-
             return;
         }
 
-        $response = $this->httpService->getRequest($endpoints[$this->selectedCountry]);
+        $response = $this->httpService->getRequest($endpoints[$country]);
         $decoded = json_decode($response, true);
 
-        if (! is_array($decoded)) {
-            $this->news = ['error' => is_string($response) ? $response : 'Unable to fetch news'];
-
+        if (! is_array($decoded) || ! isset($decoded['articles'])) {
+            $this->news = ['error' => 'Unable to fetch news'];
             return;
         }
 
-        $this->news = $decoded;
+        $this->news = [
+            'status' => $decoded['status'] ?? 'ok',
+            'articles' => $decoded['articles'],
+        ];
     }
 
     protected function newsEndpoints(): array

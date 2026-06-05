@@ -1,22 +1,10 @@
-# Challenge 04 - SSRF (NewsAPI / Financial App)
+### Challenge 4 - Manomissione input / SSRF
 
-## Attacco (prima della mitigazione)
+È stata individuata e mitigata una vulnerabilità di SSRF nella funzionalità di suggerimento news.
+L’attacco consisteva nella manomissione del valore selezionato nella UI per indurre il server a contattare un endpoint interno non autorizzato.
 
-Modificare l'`<option>` della select in scrittura articolo con `http://internal.finance:8001/user-data.php` e osservare dati finanziari nella risposta Livewire.
-
-## Mitigazione implementata
-
-- `LatestNews.php`: l'utente sceglie solo il **paese** (`it`, `gb`, `us`); l'URL NewsAPI è costruito lato server.
-- `HttpService.php`: allowlist host, niente redirect, blocco `internal.finance` per non-admin.
-- `config/cors.php`: origini ristrette al blog e admin panel.
-
-## Verifica post-mitigazione
-
-1. Come writer, aprire DevTools e tentare di inviare un URL arbitrario: la select non espone più URL modificabili.
-2. Tentare SSRF verso `internal.finance` dalla UI writer: messaggio di errore / nessun dato finanziario.
-3. Come admin su `internal.admin:8000`, la dashboard deve ancora caricare i dati finanziari.
-
-## Screenshot da aggiungere
-
-- Network tab con tentativo SSRF fallito.
-- Dashboard admin con dati finanziari OK.
+La mitigazione è stata implementata tramite:
+- allowlist server-side degli endpoint;
+- validazione della proprietà Livewire;
+- blocco degli host non ammessi;
+- restrizione dell’accesso a `internal.finance` ai soli amministratori.
